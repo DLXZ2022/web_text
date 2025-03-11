@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智绘 - AI创作平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        /*背景*/
+        body {
+            background: url('background5.jpg') no-repeat center center fixed; 
+            background-size: cover;
+/*            background-color: #e9edf0;                                */          
+            background-color: #f1f3f7;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.8;
+        }
+        .body-two{
+            background-color: #f1f3f7;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.8;
+        }
+        .container{
+            background-color: linear-gradient(135deg, #f1f3f7, #cdd4dc, #aeb6bf);
+            width: 98%;
+            height: 98%;
+            border-radius: 20px;
+            box-shadow: 2px 8px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            opacity: 0.3;
+            z-index: 1;
+        }
+        /*提示词*/
+        .prompt-text {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 16px;
+            color: #dddeee;
+        }
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            box-shadow: 2px 0 15px rgba(228, 222, 111, 0.15);
+            transition: 0.3s all cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            padding: 30px 20px;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        /* 汉堡菜单 */
+        .menu-btn {
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #2c3e50;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.0);    
+            padding: 5px 10px;
+            border-radius: 0px;
+/*            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);        */
+            transition: 0.3s all cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-btn.active {
+            left: 250px;
+            color: #f39c12
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            padding: 80px 40px 40px;
+            margin-left: 0;
+            transition: 0.3s all ease;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* 标题样式 */w
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .title {
+            font-size: 6em;
+            background: linear-gradient(150deg, #00a1e6 55%, #23cce6 45%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            font-weight: 1200;
+            position: relative;
+            padding-left: 10px;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+            font-family: 'Songti SC', serif;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .title-image{
+            width: 25%;
+            height: auto;
+            object-fit: cover;
+            position: absolute;
+            right: 40px;
+            top: 68px;
+            opacity: 0.8;
+        }
+
+        .title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 80%;
+            background: #3498db;
+            border-radius: 2px;
+        }
+
+        .title:hover {
+            transform: translateX(5px);
+        }
+
+        .subtitle {
+            color: #dcdbe2;
+            font-size: 1.8em;
+            margin-top: -18px;
+            margin-left: 140px;
+            position: relative;
+            font-weight: 1600;
+            letter-spacing: 1px;
+            font-style: italic;
+        }
+
+        .subtitle::after {
+            content: "✨";
+            position: relative;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.8;
+        }
+
+        .image-container{
+            display: flex;
+            gap: 40px;
+            margin: 20px 0;
+        }
+
+        /* 图片上传区域 */
+        .insert-container {
+            display: grid;
+            grid-template-rows: repeat(2, 1fr); /* 改为竖向排列 */
+            gap: 20px;
+            width: 50%;
+        }
+
+        .output-container {
+            width: 50%;
+        }
+
+        .insert-box {
+            border: 2px dashed #bdc3c7;
+            border-radius: 15px;
+            height: 200px;
+            background: rgba(230, 236, 212, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s all;
+        }
+
+        .insert-box:hover {
+            border-color: #e7f0f3;
+            background: rgba(190, 199, 228, 0.9);
+        }
+
+        .output-box {
+            width: 50%;
+            height: 420px;
+        }
+
+        .output-image-box {
+            height: 420px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 15px;
+            background: rgba(230, 236, 212, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        /* 提示词输入样式 */
+        .legacy-input-group {
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .legacy-input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.6);
+            border-radius: 8px;
+            font-size: 16px;
+            padding-right: 100px;
+        }
+
+        .legacy-input-group button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 10px 25px;
+            height: 70%;
+            background: #3498db;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s all;
+        }
+
+        .legacy-input-group button:hover {
+            background: #e7f0f3;
+        }
+
+        /* 导航项样式 */
+        .nav-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            color: #34495e;
+            cursor: pointer;
+            transition: 0.3s all;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="nav-item">绘</div>
+        <div class="nav-item">商</div>
+        <div class="nav-item">社</div>
+    </div>
+
+    <!-- 汉堡菜单 -->
+    <div class="menu-btn" id="menuBtn">
+        <i class="fas fa-lightbulb"></i>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <div class="header">
+            <h1 class="title">智绘</h1>
+            <img src="dec1.png" alt="装饰" class="title-image">
+            <p class="subtitle">用AI创造</p>
+        </div>
+
+
+        <!-- 插入物图片区域 -->
+        <div class="section">
+            <div class="image-container">
+                <div class="insert-container">
+                    <div class="insert-box" onclick="document.getElementById('fileInput1').click()">
+                        <p class="prompt-text" id="promptText1">上传原始图像</p>
+                        <i class="fas fa-plus-circle fa-3x" style="color: #bdc3c7;"></i>
+                        <input type="file" id="fileInput1" hidden>
+                    </div>
+                    <div class="insert-box" onclick="document.getElementById('fileInput2').click()">
+                        <p class="prompt-text" id="promptText1">上传混入图像</p>
+                        <i class="fas fa-plus-circle fa-3x" style="color: #bdc3c7;"></i>
+                        <input type="file" id="fileInput2" hidden>
+                    </div>
+                </div>
+                <div class="output-box">
+                    <div class="output-image-box">
+                        <p class="prompt-text" id="promptText2">生成结果</p>
+                        <i class="fas fa-image fa-3x" style="color: #bdc3c7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提示词输入 -->
+        <div class="section">
+            <div class="legacy-input-group">
+                <input type="text" placeholder="输入你的创意提示...">
+                <button>发送</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 菜单功能
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            menuBtn.classList.toggle('active');
+        });
+
+        // 图片上传功能
+        function handleUpload(input) 
+        {
+            const file = input.files[0];
+            const promptText = input.parentElement.querySelector('.prompt-text');
+            if (file) 
+            {
+                const reader = new FileReader();
+                const parent = input.parentElement;
+                reader.onload = function(e) 
+                {
+                    formData.append('file', file);
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData,
+                    }).then(response => response.json())
+                    .then(data => {
+                        input.parentElement.innerHTML = `
+                        <p class="prompt-text">已上传: ${file.name}</p>
+                        <img src="${data.imageUrl}" 
+                             style="width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    border-radius: 12px;">
+                        <input type="file" id="${input.id}" hidden>`;
+                })
+                .catch(error => console.error('Error:', error));
+            };
+            reader.readAsDataURL(file);}
+            else 
+            {
+                promptText.textContent = '上传原始图像';
+            }
+        }
+
+        document.querySelectorAll('.insert-box input').forEach(input => {
+            input.addEventListener('change', function() {
+                handleUpload(this);
+            });
+        });
+
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.classList.remove('active');
+                menuBtn.classList.remove('active');
+            }
+        });
+    </script>
+    </div>
+</body>
+</html>
